@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Home</title>
+</head>
+<body>
+    <div class="d-flex justify-content-center align-items-center vh-100">
+        <div>
+            <label for="username">User:</label>
+            <div class="p-2">
+                <input type="text" id="user" placeholder="Please Enter User Name">
+            </div>
+            <label for="room">Room:</label>
+            <div class="p-2">
+                <input type="text" id="room" placeholder="Please Enter Room Name">
+            </div>
+            <div class="p-2">
+                <input type="button" id="submit" value="submit">
+            </div>    
+        </div>
+    </div>
+    
+    <script>
+        var btn = document.getElementById("submit");
+        document.querySelector("#room").focus();
+        document.querySelector("#room").onkeyup = function(e){
+            if(e.keyCode === 13){  //press enter
+                btn.click();
+            }
+        }
+        btn.onclick = function(e){
+            var room_name = document.getElementById("room").value;
+            var user = document.getElementById("user").value;
+            window.location.pathname = "/chat/" + user + "/" + room_name + "/";
+        }
+    </script>
+</body>
+</html>
