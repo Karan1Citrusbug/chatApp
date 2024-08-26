@@ -9,17 +9,27 @@
 <body>
     <div class="d-flex justify-content-center align-items-center vh-100">
         <div>
-            <label for="username">User:</label>
+            <div>
+                Available Chat Room:
+                {% if avail_chat_room%}
+                {% for chatroom in avail_chat_room %}
+                    <div>
+                        {{chatroom.room}}
+                    </div>
+                {% endfor %}
+                {% endif %}
+            </div>
+            <div>User:</div>
             <div class="p-2">
                 <input type="text" id="user" placeholder="Please Enter User Name">
             </div>
-            <label for="room">Room:</label>
+            <div>Room:</div>
             <div class="p-2">
                 <input type="text" id="room" placeholder="Please Enter Room Name">
             </div>
             <div class="p-2">
                 <input type="button" id="submit" value="submit">
-            </div>    
+            </div>
         </div>
     </div>
     
@@ -34,7 +44,11 @@
         btn.onclick = function(e){
             var room_name = document.getElementById("room").value;
             var user = document.getElementById("user").value;
-            window.location.pathname = "/chat/" + user + "/" + room_name + "/";
+            if(room_name === "" && user === ""){
+                alert("Plase fill required field")
+            }else{
+                window.location.pathname = "/chat/" + user + "/" + room_name + "/";
+            }
         }
     </script>
 </body>

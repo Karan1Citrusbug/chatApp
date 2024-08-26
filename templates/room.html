@@ -10,17 +10,14 @@
 </head>
 <body>
     <div class="d-flex justify-content-center align-items-center vh-100">
-        <div>
-            
-            <div class="p-2" id="chatarea">
-                {% if data %}
-                    {% for chat in data %}
-                        <p>{{chat.user}}:{{chat.message}}</p>
-                    {% endfor %}
-                {% endif %}
+        <div> 
+            <div class="p-2">
+                <!-- <textarea id="chatarea" type="text" rows="10" cols="50" readonly></textarea> -->
+                <div id="chatarea" style="float:left;width:600px;overflow-y: auto;height: 500px;"></div>
             </div>
             <div class="p-2">
-                <input type="text" id="chatinput" placeholder="Enter message">
+                <div id="typing"></div>
+                <input type="text" id="chatinput" placeholder="Enter message" oninput="typeing(this)">
                 <input id="chatbtn" type="button" value="submit">
             </div>    
         </div>
@@ -28,21 +25,36 @@
     
     <script>
         var btn = document.getElementById("chatbtn");
+        const data = {{ data|safe }};
+        console.log(data)
 
         const room_name = "{{ room_name }}";
         const user = "{{ user }}";
+        let formattedText = '';
+        Object.keys(data).forEach(key => {
+            if(data[key].user === user){
+                formattedText += `"You": ${data[key].message}`;
+            }else{
+                formattedText += `${data[key].user}: ${data[key].message}`;
+                formattedText += `<br>`;
+            }
+        });
+        document.getElementById('chatarea').innerHTML = formattedText;
+
         const chatSocket = new WebSocket(
             `ws://${window.location.host}/ws/chat/${room_name}/`
         );
         chatSocket.onmessage = function(e){
             const data = JSON.parse(e.data);
-            document.querySelector("#chatarea").value += (data.user + ":" + data.message + '\n');
+            document.querySelector("#chatarea").innerHTML+= (data.user + ":" + data.message + '\n');
         };
 
         document.getElementById("chatbtn").onclick = function(e){
             const msg = document.getElementById("chatinput").value;
-            chatSocket.send(JSON.stringify({'message':msg,'user':user,'room_name':room_name}));
-            document.querySelector("#chatinput").value = '';
+            if (msg != ""){
+                chatSocket.send(JSON.stringify({'message':msg,'user':user,'room_name':room_name}));
+                document.querySelector("#chatinput").value = '';
+            }
         };
         chatSocket.onclose = function(e){
             console.log("chatsocket closed")
@@ -51,6 +63,14 @@
         document.querySelector("#chatinput").onkeyup = function(e){
             if(e.keyCode === 13){  //press enter
                 btn.click();
+            }
+        }
+
+        function typeing(e){
+            let chat = document.querySelector("#chatinput").value;
+            console.log(chat)
+            if(chat != ""){
+                document.getElementById('typing').innerHTML = user +" typing..."
             }
         }
     </script>
