@@ -10,8 +10,8 @@
     <div class="d-flex justify-content-center align-items-center vh-100">
         <div>
             <div>
-                Available Chat Room:
                 {% if avail_chat_room%}
+                <p>Available Chat Room:</p>
                 {% for chatroom in avail_chat_room %}
                     <div>
                         {{chatroom.room}}

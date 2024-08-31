@@ -3,6 +3,8 @@ import json
 from channels.generic.websocket import WebsocketConsumer
 from asgiref.sync import async_to_sync
 from .models import *
+from django.core.files.base import ContentFile
+import base64
 
 class ChatConsumer(WebsocketConsumer):
     def connect(self):
@@ -24,24 +26,40 @@ class ChatConsumer(WebsocketConsumer):
         async_to_sync(self.channel_layer.group_discard)(
             self.room_name,self.channel_name
         )
-
+        
     def receive(self, text_data):
-        """
-        **description**:
-            recive messages sent by the users
-        """
         data = json.loads(text_data)
-        user = data["user"]
-        message = data["message"]
+        user = data.get("user")
+        message = data.get("message")
+        chatimg_base64 = data.get("chatimg")
+        status = data.get("status")
+        
+        if chatimg_base64:
+            if ';base64,' in chatimg_base64:
+                try:
+                    format, imgstr = chatimg_base64.split(';base64,')
+                    img_data = ContentFile(base64.b64decode(imgstr), name='image.' + format.split('/')[-1])
+                except ValueError:
+                    print("Invalid Base64 format")
+                    img_data = None
+            else:
+                print("No Base64 delimiter found")
+                img_data = None
+        else:
+            img_data = None
+
         avail_room = Room.objects.get(room=self.room_name)
-        if user and message:
-            Chat.objects.create(user = user,room=avail_room,message = message)
+        if (user and message) or (user and chatimg_base64):
+            Chat.objects.create(user=user, room=avail_room, message=message, img=img_data)
             print("created")
+
         async_to_sync(self.channel_layer.group_send)(
-            self.room_name,{'type':"chat_messages",'messages':message,'user':user,'room_name':self.room_name}
+            self.room_name, {'type': "chat_messages", 'messages': message, 'user': user, 'room_name': self.room_name, "status": status, "chatimg": chatimg_base64}
         )
 
     def chat_messages(self,event):
         message = event["messages"]
         user = event["user"]
-        self.send(text_data = json.dumps({"message":message ,"user":user, "room_name":self.room_name}))
+        status = event["status"]
+        chatimg = event["chatimg"]
+        self.send(text_data = json.dumps({"message":message ,"user":user, "room_name":self.room_name,"status":status,"chatimg":chatimg}))
